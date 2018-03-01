@@ -27,6 +27,8 @@ public class WechatServiceImpl implements WechatService {
 
     private Logger logger = LoggerFactory.getLogger(WechatService.class);
 
+    private String buildurl;
+
     private String corpid;
 
     private String corpsecret;
@@ -59,7 +61,8 @@ public class WechatServiceImpl implements WechatService {
 
     private String currentTime;
 
-    public WechatServiceImpl(String corpid, String corpsecret, String agentid, String reporturl, String reportprefix, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed, TaskListener listener, AbstractBuild build) {
+    public WechatServiceImpl(String buildurl, String corpid, String corpsecret, String agentid, String reporturl, String reportprefix, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed, TaskListener listener, AbstractBuild build) {
+        this.buildurl = buildurl;
         this.corpid = corpid;
         this.corpsecret = corpsecret;
         this.memberIds = memberIds;
@@ -95,7 +98,7 @@ public class WechatServiceImpl implements WechatService {
         String content = String.format("项目[%s%s]开始构建", build.getProject().getDisplayName(), build.getDisplayName());
 
         if (onStart) {
-            sendMsg("", content, title);
+            sendMsg(buildurl, content, title);
         }
 
     }
@@ -118,7 +121,7 @@ public class WechatServiceImpl implements WechatService {
                 currentTime, build.getProject().getDisplayName(), build.getDisplayName(), build.getBuildStatusSummary().message, build.getDurationString());
 
         if (onFailed) {
-            sendMsg("", content, title);
+            sendMsg(buildurl, content, title);
         }
     }
 
@@ -138,7 +141,7 @@ public class WechatServiceImpl implements WechatService {
         textcard.put("title", title);
         textcard.put("description", msg);
         textcard.put("url", link);
-        textcard.put("btntxt", "地址链接");
+        textcard.put("btntxt", "地址");
 
         body.put("textcard", textcard);
         try {

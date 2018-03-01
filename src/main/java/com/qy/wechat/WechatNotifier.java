@@ -23,6 +23,8 @@ public class WechatNotifier extends Notifier {
 
     private static final String reportpath = "/apks/api_report/";
 
+    private static String jenkinsUrl;
+
     private String corpid;
 
     private String corpsecret;
@@ -73,6 +75,14 @@ public class WechatNotifier extends Notifier {
         return agentid;
     }
 
+    public static String getReportpath() {
+        return reportpath;
+    }
+
+    public String getMemberIds() {
+        return memberIds;
+    }
+
     @DataBoundConstructor
     public WechatNotifier(String corpid, String corpsecret, String agentid, String reporturl, String reportprefix, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed) {
         this.corpid = corpid;
@@ -87,7 +97,12 @@ public class WechatNotifier extends Notifier {
     }
 
     public WechatService newWechatService(AbstractBuild build, TaskListener listener) {
-        return new WechatServiceImpl(corpid, corpsecret, agentid, reporturl, reportprefix, memberIds, onStart, onSuccess, onFailed, listener, build);
+        // 处理测试报告
+        String buildId = build.getId();
+        String prefix = reportprefix.replace("$BUILD_ID", buildId);
+        // 处理构建地址
+        String buildUrl = jenkinsUrl + build.getUrl();
+        return new WechatServiceImpl(buildUrl, corpid, corpsecret, agentid, reporturl, prefix, memberIds, onStart, onSuccess, onFailed, listener, build);
     }
 
     @Override
@@ -121,10 +136,11 @@ public class WechatNotifier extends Notifier {
 
         public String getDefaultReportUrl() {
             Jenkins instance = Jenkins.getInstance();
+            jenkinsUrl =  instance.getRootUrl();
             assert instance != null;
             if(instance.getRootUrl() != null){
-                String[] urls = instance.getRootUrl().split(":");
-                String url = urls[0] + urls[1];
+                String[] urls = jenkinsUrl.split(":");
+                String url = "http:" + urls[1];
                 return  url + reportpath;
             }else{
                 return "";
