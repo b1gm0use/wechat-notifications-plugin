@@ -28,8 +28,8 @@
     </properties>
 
     <name>wechat-notification</name>
-    <description>wechat-notification</description>
-    <url>todo</url>
+    <description>wechat-notifications-plugin</description>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/wechat-notifications-plugin</url>
 
     <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
 
@@ -50,7 +50,7 @@
     <scm>
         <connection>scm:git:ssh://github.com/jenkinsci/wechat-notifications-plugin.git</connection>
 	    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/wechat-notifications-plugin.git</developerConnection>
-        <url>https://github.com/yumao123/wechat-notifications-plugin</url>
+        <url>https://github.com/jenkinsci/wechat-notifications-plugin</url>
         <tag>wechat-notifications-1.0</tag>
     </scm>
     <repositories>
