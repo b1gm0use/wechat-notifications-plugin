@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.qy.wechat</groupId>
     <artifactId>wechat-notifications</artifactId>
-    <version>wechat-notification</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <properties>
