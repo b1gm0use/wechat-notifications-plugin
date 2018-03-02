@@ -1,5 +1,6 @@
 package com.qy.wechat;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
@@ -115,31 +116,14 @@ public class WechatServiceImpl implements WechatService {
         HttpClient client = getHttpClient();
         PostMethod post = new PostMethod(String.format(sendMsgApi, token));
 
-        JSONObject body = new JSONObject();
-        body.put("touser", memberIds);
-        body.put("toparty", "");
-        body.put("totag", "");
-        body.put("msgtype", "textcard");
-        body.put("agentid", agentid);
-        body.put("safe", 0);
+        CardMessage cardMessage = new CardMessage(memberIds, "", "", "textcard", agentid, "0",
+                new TextCard(title, msg, link, "更多"));
+        String body = JSON.toJSONString(cardMessage);
 
-        JSONObject textcard = new JSONObject();
-        textcard.put("title", title);
-        textcard.put("description", msg);
-        textcard.put("url", link);
-        textcard.put("btntxt", "地址");
-
-        body.put("textcard", textcard);
         try {
-            logger.info("Send msg:" + body.toJSONString());
-            listener.getLogger().println("Send msg:" + body.toJSONString());
-            post.setRequestEntity(new StringRequestEntity(body.toJSONString(), "application/json", "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            logger.error("build request error", e);
-            listener.getLogger().println("build request error: " + e);
-        }
-        try {
+            logger.info("Send msg:" + body);
+            listener.getLogger().println("Send msg:" + body);
+            post.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
             client.executeMethod(post);
             logger.info(post.getResponseBodyAsString());
         } catch (IOException e) {
@@ -166,7 +150,7 @@ public class WechatServiceImpl implements WechatService {
     }
 
     private HttpClient getHttpClient() {
-        HttpClient client = client = new HttpClient();
+        HttpClient client = new HttpClient();
         return client;
     }
 }

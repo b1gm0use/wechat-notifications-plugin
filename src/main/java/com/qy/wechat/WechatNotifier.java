@@ -110,12 +110,12 @@ public class WechatNotifier extends Notifier {
         // 处理链接
         if (file.endsWith(".html")){
             String buildId = build.getId();
-            String report = file.equals("") ? "": file.replace("$BUILD_ID", buildId);
+            String report = file.equals("") ? "": file.replace("$BUILD_ID", buildId).trim();
             link = this.link.endsWith("/") ? this.link + report :this.link + "/" + report;
         }
         else if(file.endsWith(".apk")){
             SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-            String apk = file.equals("") ? "": file.replace("$DATE", df.format(new Date()));
+            String apk = file.equals("") ? "": file.replace("$DATE", df.format(new Date())).trim();
             link = this.link.endsWith("/") ? this.link + apk :this.link + "/" + apk;
         }
 
@@ -134,12 +134,12 @@ public class WechatNotifier extends Notifier {
 
 
     @Override
-    public DingdingNotifierDescriptor getDescriptor() {
-        return (DingdingNotifierDescriptor) super.getDescriptor();
+    public WechatNotifierDescriptor getDescriptor() {
+        return (WechatNotifierDescriptor) super.getDescriptor();
     }
 
     @Extension
-    public static class DingdingNotifierDescriptor extends BuildStepDescriptor<Publisher> {
+    public static class WechatNotifierDescriptor extends BuildStepDescriptor<Publisher> {
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
