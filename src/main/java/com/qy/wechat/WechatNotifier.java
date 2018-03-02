@@ -15,6 +15,8 @@ import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by Marvin on 16/8/25.
@@ -23,7 +25,7 @@ public class WechatNotifier extends Notifier {
 
     private static final String reportpath = "/apks/api_report/";
 
-    private static String jenkinsUrl;
+    private String jenkinsUrl;
 
     private String corpid;
 
@@ -31,9 +33,9 @@ public class WechatNotifier extends Notifier {
 
     private String agentid;
 
-    private String reporturl;
+    private String link;
 
-    private String reportprefix;
+    private String file;
 
     private String memberIds;
 
@@ -55,19 +57,19 @@ public class WechatNotifier extends Notifier {
         return onFailed;
     }
 
-    public String getReporturl() {
-        return reporturl;
+    public String getLink() {
+        return link;
     }
 
-    public String getReportprefix() {
-        return reportprefix;
+    public String getFile() {
+        return file;
     }
 
     public String getCorpid() {
         return corpid;
     }
 
-     public String getCorpsecret() {
+    public String getCorpsecret() {
         return corpsecret;
     }
 
@@ -84,25 +86,40 @@ public class WechatNotifier extends Notifier {
     }
 
     @DataBoundConstructor
-    public WechatNotifier(String corpid, String corpsecret, String agentid, String reporturl, String reportprefix, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed) {
+    public WechatNotifier(String corpid, String corpsecret, String agentid, String link, String file, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed) {
         this.corpid = corpid;
         this.corpsecret = corpsecret;
         this.memberIds = memberIds;
         this.agentid = agentid;
-        this.reporturl = reporturl;
-        this.reportprefix = reportprefix;
+        this.link = link;
+        this.file = file;
         this.onStart = onStart;
         this.onSuccess = onSuccess;
         this.onFailed = onFailed;
+
     }
 
+
     public WechatService newWechatService(AbstractBuild build, TaskListener listener) {
-        // 处理测试报告
-        String buildId = build.getId();
-        String prefix = reportprefix.replace("$BUILD_ID", buildId);
         // 处理构建地址
+        Jenkins instance = Jenkins.getInstance();
+        jenkinsUrl =  instance.getRootUrl();
         String buildUrl = jenkinsUrl + build.getUrl();
-        return new WechatServiceImpl(buildUrl, corpid, corpsecret, agentid, reporturl, prefix, memberIds, onStart, onSuccess, onFailed, listener, build);
+        String link = "";
+
+        // 处理链接
+        if (file.endsWith(".html")){
+            String buildId = build.getId();
+            String report = file.equals("") ? "": file.replace("$BUILD_ID", buildId);
+            link = this.link.endsWith("/") ? this.link + report :this.link + "/" + report;
+        }
+        else if(file.endsWith(".apk")){
+            SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+            String apk = file.equals("") ? "": file.replace("$DATE", df.format(new Date()));
+            link = this.link.endsWith("/") ? this.link + apk :this.link + "/" + apk;
+        }
+
+        return new WechatServiceImpl(buildUrl, corpid, corpsecret, agentid, link, memberIds, onStart, onSuccess, onFailed, listener, build);
     }
 
     @Override
@@ -136,12 +153,9 @@ public class WechatNotifier extends Notifier {
 
         public String getDefaultReportUrl() {
             Jenkins instance = Jenkins.getInstance();
-            jenkinsUrl =  instance.getRootUrl();
             assert instance != null;
             if(instance.getRootUrl() != null){
-                String[] urls = jenkinsUrl.split(":");
-                String url = "http:" + urls[1];
-                return  url + reportpath;
+                return  instance.getRootUrl();
             }else{
                 return "";
             }

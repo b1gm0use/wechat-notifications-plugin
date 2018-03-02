@@ -1,17 +1,12 @@
 package com.qy.wechat;
 
 import com.alibaba.fastjson.JSONObject;
-import hudson.ProxyConfiguration;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
-import jenkins.model.Jenkins;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +30,8 @@ public class WechatServiceImpl implements WechatService {
 
     private String agentid;
 
-    private String reporturl;
 
-    private String reportprefix;
+    private String prefix;
 
     private String memberIds;
 
@@ -61,26 +55,21 @@ public class WechatServiceImpl implements WechatService {
 
     private String currentTime;
 
-    public WechatServiceImpl(String buildurl, String corpid, String corpsecret, String agentid, String reporturl, String reportprefix, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed, TaskListener listener, AbstractBuild build) {
+    public WechatServiceImpl(String buildurl, String corpid, String corpsecret, String agentid, String link, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed, TaskListener listener, AbstractBuild build) {
         this.buildurl = buildurl;
         this.corpid = corpid;
         this.corpsecret = corpsecret;
         this.memberIds = memberIds;
         this.agentid = agentid;
-        this.reporturl = reporturl;
-        this.reportprefix = reportprefix;
         this.onStart = onStart;
         this.onSuccess = onSuccess;
         this.onFailed = onFailed;
         this.listener = listener;
+        this.link = link;
         this.build = build;
-
+        // 记录当前时间
         SimpleDateFormat format = new SimpleDateFormat("E yyyy.MM.dd hh:mm:ss");
         currentTime = format.format(new Date());
-
-        this.link = this.reporturl.endsWith("/") ?
-                this.reporturl + this.reportprefix + ".html" :
-                this.reporturl + "/" + this.reportprefix + ".html";
     }
 
     private void sendMsg(String link, String content, String title){
@@ -96,7 +85,6 @@ public class WechatServiceImpl implements WechatService {
     public void start() {
         String title = String.format("%s%s开始构建", build.getProject().getDisplayName(), build.getDisplayName());
         String content = String.format("项目[%s%s]开始构建", build.getProject().getDisplayName(), build.getDisplayName());
-
         if (onStart) {
             sendMsg(buildurl, content, title);
         }
@@ -106,9 +94,8 @@ public class WechatServiceImpl implements WechatService {
     @Override
     public void success() {
         String title = String.format("%s%s构建成功", build.getProject().getDisplayName(), build.getDisplayName());
-        String content = String.format("<div class=\"gray\">%s</div><div class=\"normal\">项目[%s%s]构建成功, summary:%s, duration:%s</div><div class=\"highlight\">点击查看测试报告</div>",
+        String content = String.format("<div class=\"gray\">%s</div><div class=\"normal\">项目[%s%s]构建成功, summary:%s, duration:%s</div><div class=\"highlight\">点击查看测试报告或下载安装包</div>",
                 currentTime, build.getProject().getDisplayName(), build.getDisplayName(), build.getBuildStatusSummary().message, build.getDurationString());
-
         if (onSuccess) {
             sendMsg(link, content, title);
         }
@@ -119,7 +106,6 @@ public class WechatServiceImpl implements WechatService {
         String title = String.format("%s%s构建失败", build.getProject().getDisplayName(), build.getDisplayName());
         String content = String.format("<div class=\"gray\">%s</div><div class=\"normal\">项目[%s%s]构建失败, summary:%s, duration:%s</div>",
                 currentTime, build.getProject().getDisplayName(), build.getDisplayName(), build.getBuildStatusSummary().message, build.getDurationString());
-
         if (onFailed) {
             sendMsg(buildurl, content, title);
         }
@@ -166,7 +152,6 @@ public class WechatServiceImpl implements WechatService {
     private void updateToken(){
         HttpClient client = getHttpClient();
         GetMethod get = new GetMethod(String.format(updateTokenApi, corpid, corpsecret));
-
         try {
             client.executeMethod(get);
             logger.info(get.getResponseBodyAsString());
@@ -180,9 +165,8 @@ public class WechatServiceImpl implements WechatService {
         }
     }
 
-
     private HttpClient getHttpClient() {
-        HttpClient client = new HttpClient();
+        HttpClient client = client = new HttpClient();
         return client;
     }
 }

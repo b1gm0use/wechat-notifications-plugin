@@ -24,11 +24,13 @@ public class JobListener extends RunListener<AbstractBuild> {
 
     @Override
     public void onStarted(AbstractBuild r, TaskListener listener) {
+        listener.getLogger().println("JobListener -> onStarted");
         getService(r, listener).start();
     }
 
     @Override
     public void onCompleted(AbstractBuild r, @Nonnull TaskListener listener) {
+        listener.getLogger().println("JobListener -> onCompleted");
         Result result = r.getResult();
         if (null != result && result.equals(Result.SUCCESS)) {
             getService(r, listener).success();

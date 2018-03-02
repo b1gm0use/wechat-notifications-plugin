@@ -17,12 +17,12 @@
         <f:textbox  />
       </f:entry>
 
-      <f:entry title="测试报告地址" field="reporturl">
-         <f:textbox  default="${descriptor.getDefaultReportUrl()}"/>
+      <f:entry title="输出文件" field="file">
+         <f:textbox  />
        </f:entry>
 
-      <f:entry title="测试报告前缀" field="reportprefix">
-         <f:textbox  />
+      <f:entry title="链接地址" field="link">
+         <f:textbox  default="${descriptor.getDefaultReportUrl()}"/>
        </f:entry>
 
       <f:entry title="启动构建时通知">
