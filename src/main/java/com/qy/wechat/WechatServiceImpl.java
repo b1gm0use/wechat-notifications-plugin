@@ -31,10 +31,15 @@ public class WechatServiceImpl implements WechatService {
 
     private String agentid;
 
-
-    private String prefix;
-
     private String memberIds;
+
+    private String file;
+
+    private String link;
+
+    private String reportFile;
+
+    private String reportLink;
 
     private boolean onStart;
 
@@ -46,79 +51,99 @@ public class WechatServiceImpl implements WechatService {
 
     private AbstractBuild build;
 
-    private String link;
-
-    private static final String updateTokenApi = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s";
-
-    private static final String sendMsgApi = "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s";
-
     private String token = "";
 
-    private String currentTime;
+    private String proName;
 
-    public WechatServiceImpl(String buildurl, String corpid, String corpsecret, String agentid, String link, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed, TaskListener listener, AbstractBuild build) {
+    private String displayName;
+
+    private String currentTime = new SimpleDateFormat("E yyyy.MM.dd hh:mm:ss").format(new Date());
+
+    public WechatServiceImpl(String buildurl, String corpid, String corpsecret, String agentid, String memberIds, String file,
+                             String link, String reportFile, String reportLink, boolean onStart, boolean onSuccess, boolean onFailed, TaskListener listener,
+                             AbstractBuild build) {
         this.buildurl = buildurl;
         this.corpid = corpid;
         this.corpsecret = corpsecret;
-        this.memberIds = memberIds;
         this.agentid = agentid;
+        this.memberIds = memberIds;
+        this.file = file;
+        this.link = link;
+        this.reportFile = reportFile;
+        this.reportLink = reportLink;
         this.onStart = onStart;
         this.onSuccess = onSuccess;
         this.onFailed = onFailed;
         this.listener = listener;
-        this.link = link;
         this.build = build;
-        // 记录当前时间
-        SimpleDateFormat format = new SimpleDateFormat("E yyyy.MM.dd hh:mm:ss");
-        currentTime = format.format(new Date());
+
+        proName = build.getProject().getDisplayName();
+        displayName = build.getDisplayName();
     }
 
-    private void sendMsg(String link, String content, String title){
-        if (this.token.equals("")){
-            updateToken();
-        }
-        logger.info("send link msg from " + listener.toString());
-        listener.getLogger().println("send link msg from " + listener.toString());
-        sendLinkMessage(link, content, title);
+    /**
+     * 获取测试报告路径
+     * 现在测试报告路径以打包的ID分辨,所以这里通过替换$BUILD_ID生成报告路径
+     * @return
+     */
+    private String getReportPath(){
+        return reportLink.endsWith("/") ?
+                reportLink + reportFile.trim().replace("$BUILD_ID", build.getId()) :
+                reportLink + "/" + reportFile.trim().replace("$BUILD_ID", build.getId());
+    }
+
+    /**
+     * 获取下载路径
+     * 现在安卓端打包的后缀都是年月日,所以在这里通过替换$DATE生成文件路径
+     * @return
+     */
+    private String getDownloadPath(){
+        String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        return link.endsWith("/") ?
+                link + file.trim().replace("$DATE", date) :
+                link + "/" + file.trim().replace("$DATE", date);
     }
 
     @Override
     public void start() {
-        String title = String.format("%s%s开始构建", build.getProject().getDisplayName(), build.getDisplayName());
-        String content = String.format("项目[%s%s]开始构建", build.getProject().getDisplayName(), build.getDisplayName());
         if (onStart) {
-            sendMsg(buildurl, content, title);
+            sendLinkMessage(
+                    String.format(Messages.WechatNotifier_startContent(), proName, displayName));
         }
-
     }
 
     @Override
     public void success() {
-        String title = String.format("%s%s构建成功", build.getProject().getDisplayName(), build.getDisplayName());
-        String content = String.format("<div class=\"gray\">%s</div><div class=\"normal\">项目[%s%s]构建成功, summary:%s, duration:%s</div><div class=\"highlight\">点击查看测试报告或下载安装包</div>",
-                currentTime, build.getProject().getDisplayName(), build.getDisplayName(), build.getBuildStatusSummary().message, build.getDurationString());
         if (onSuccess) {
-            sendMsg(link, content, title);
+            sendLinkMessage(
+                    String.format(Messages.WechatNotifier_successContent(),
+                            currentTime, build.getProject().getDisplayName(), displayName, build.getBuildStatusSummary().message, build.getDurationString(),
+                            getDownloadPath(), getReportPath()));
         }
     }
 
     @Override
     public void failed() {
-        String title = String.format("%s%s构建失败", build.getProject().getDisplayName(), build.getDisplayName());
-        String content = String.format("<div class=\"gray\">%s</div><div class=\"normal\">项目[%s%s]构建失败, summary:%s, duration:%s</div>",
-                currentTime, build.getProject().getDisplayName(), build.getDisplayName(), build.getBuildStatusSummary().message, build.getDurationString());
         if (onFailed) {
-            sendMsg(buildurl, content, title);
+            sendLinkMessage(
+                    String.format(Messages.WechatNotifier_failedContent(),
+                            currentTime, build.getProject().getDisplayName(),displayName, build.getBuildStatusSummary().message, build.getDurationString()));
         }
     }
 
-    private void sendLinkMessage(String link, String msg, String title) {
+    /**
+     * 群发消息
+     * @param msg
+     */
+    private void sendLinkMessage(String msg) {
+        if (this.token.equals("")){
+            updateToken();
+        }
         HttpClient client = getHttpClient();
-        PostMethod post = new PostMethod(String.format(sendMsgApi, token));
+        PostMethod post = new PostMethod(String.format(Messages.WechatNotifier_sendMsgApi(), token));
 
-        CardMessage cardMessage = new CardMessage(memberIds, "", "", "textcard", agentid, "0",
-                new TextCard(title, msg, link, "更多"));
-        String body = JSON.toJSONString(cardMessage);
+        TextMessage textMessage = new TextMessage(memberIds, "", "", "text", agentid, "0", new Text(msg));
+        String body = JSON.toJSONString(textMessage);
 
         try {
             logger.info("Send msg:" + body);
@@ -133,9 +158,12 @@ public class WechatServiceImpl implements WechatService {
         post.releaseConnection();
     }
 
+    /**
+     * 更新access_token
+     */
     private void updateToken(){
         HttpClient client = getHttpClient();
-        GetMethod get = new GetMethod(String.format(updateTokenApi, corpid, corpsecret));
+        GetMethod get = new GetMethod(String.format(Messages.WechatNotifier_updateTokenApi(), corpid, corpsecret));
         try {
             client.executeMethod(get);
             logger.info(get.getResponseBodyAsString());

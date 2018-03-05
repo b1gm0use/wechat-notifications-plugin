@@ -23,10 +23,6 @@ import java.util.Date;
  */
 public class WechatNotifier extends Notifier {
 
-    private static final String reportpath = "/apks/api_report/";
-
-    private String jenkinsUrl;
-
     private String corpid;
 
     private String corpsecret;
@@ -38,6 +34,10 @@ public class WechatNotifier extends Notifier {
     private String file;
 
     private String memberIds;
+
+    private String reportFile;
+
+    private String reportLink;
 
     private boolean onStart;
 
@@ -77,49 +77,38 @@ public class WechatNotifier extends Notifier {
         return agentid;
     }
 
-    public static String getReportpath() {
-        return reportpath;
-    }
-
     public String getMemberIds() {
         return memberIds;
     }
 
+    public String getReportFile() {
+        return reportFile;
+    }
+
+    public String getReportLink() {
+        return reportLink;
+    }
+
     @DataBoundConstructor
-    public WechatNotifier(String corpid, String corpsecret, String agentid, String link, String file, String memberIds, boolean onStart, boolean onSuccess, boolean onFailed) {
+    public WechatNotifier(String corpid, String corpsecret, String agentid, String link, String file, String memberIds,
+                          String reportFile, String reportLink, boolean onStart, boolean onSuccess, boolean onFailed) {
         this.corpid = corpid;
         this.corpsecret = corpsecret;
-        this.memberIds = memberIds;
         this.agentid = agentid;
         this.link = link;
         this.file = file;
+        this.memberIds = memberIds;
+        this.reportFile = reportFile;
+        this.reportLink = reportLink;
         this.onStart = onStart;
         this.onSuccess = onSuccess;
         this.onFailed = onFailed;
-
     }
 
-
     public WechatService newWechatService(AbstractBuild build, TaskListener listener) {
-        // 处理构建地址
-        Jenkins instance = Jenkins.getInstance();
-        jenkinsUrl =  instance.getRootUrl();
-        String buildUrl = jenkinsUrl + build.getUrl();
-        String link = "";
+        return new WechatServiceImpl(Jenkins.getInstance().getRootUrl() + build.getUrl(), corpid, corpsecret, agentid, memberIds, file,
+                link, reportFile, reportLink, onStart, onSuccess, onFailed, listener, build);
 
-        // 处理链接
-        if (file.endsWith(".html")){
-            String buildId = build.getId();
-            String report = file.equals("") ? "": file.replace("$BUILD_ID", buildId).trim();
-            link = this.link.endsWith("/") ? this.link + report :this.link + "/" + report;
-        }
-        else if(file.endsWith(".apk")){
-            SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-            String apk = file.equals("") ? "": file.replace("$DATE", df.format(new Date())).trim();
-            link = this.link.endsWith("/") ? this.link + apk :this.link + "/" + apk;
-        }
-
-        return new WechatServiceImpl(buildUrl, corpid, corpsecret, agentid, link, memberIds, onStart, onSuccess, onFailed, listener, build);
     }
 
     @Override
@@ -131,7 +120,6 @@ public class WechatNotifier extends Notifier {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         return true;
     }
-
 
     @Override
     public WechatNotifierDescriptor getDescriptor() {
@@ -148,17 +136,12 @@ public class WechatNotifier extends Notifier {
 
         @Override
         public String getDisplayName() {
-            return "企业微信配置";
+            return Messages.WechatNotifier_pluginName();
         }
 
-        public String getDefaultReportUrl() {
+        public String getDefaultLink() {
             Jenkins instance = Jenkins.getInstance();
-            assert instance != null;
-            if(instance.getRootUrl() != null){
-                return  instance.getRootUrl();
-            }else{
-                return "";
-            }
+            return instance.getRootUrl() != null ? instance.getRootUrl() : "";
         }
     }
 }

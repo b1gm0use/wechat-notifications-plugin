@@ -5,7 +5,6 @@ package com.qy.wechat;
  */
 public interface WechatService {
 
-
     void start();
 
     void success();
