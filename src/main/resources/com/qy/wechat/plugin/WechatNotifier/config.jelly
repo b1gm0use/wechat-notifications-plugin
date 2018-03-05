@@ -1,0 +1,63 @@
+<?jelly escape-by-default='true'?>
+<j:jelly
+    xmlns:j="jelly:core"
+    xmlns:st="jelly:stapler"
+    xmlns:d="jelly:define"
+    xmlns:l="/lib/layout"
+    xmlns:t="/lib/hudson"
+    xmlns:f="/lib/form"
+    xmlns:s="/lib/samples">
+
+  <s:sample title="Sample">
+      <f:entry title="企业微信ID" field="corpid">
+        <f:textbox />
+      </f:entry>
+
+      <f:entry title="应用secrete" field="corpsecret">
+        <f:textbox />
+      </f:entry>
+
+      <f:entry title="应用ID" field="agentid">
+         <f:textbox />
+       </f:entry>
+
+      <f:entry title="发送人员ID" field="memberIds">
+        <f:textbox />
+      </f:entry>
+
+     <f:entry title="启动构建时通知">
+         <f:checkbox name="onStart" value="true" checked="${instance.isOnStart()}"/>
+     </f:entry>
+     <f:entry title="构建成功时通知">
+         <f:checkbox name="onSuccess" value="true" checked="${instance.isOnSuccess()}"/>
+     </f:entry>
+     <f:entry title="构建失败时通知">
+         <f:checkbox name="onFailed" value="true" checked="${instance.isOnFailed()}"/>
+     </f:entry>
+
+      <f:section title="安装包配置项">
+          <f:advanced>
+              <f:entry title="安装包" field="file">
+                 <f:textbox />
+               </f:entry>
+              <f:entry title="安装包地址" field="link">
+                 <f:textbox  default="${descriptor.getDefaultLink()}"/>
+               </f:entry>
+          </f:advanced>
+      </f:section>
+
+      <f:section title="测试报告配置项">
+          <f:advanced>
+              <f:entry title="测试报告文件" field="reportFile">
+                  <f:textbox />
+              </f:entry>
+              <f:entry title="测试报告地址" field="reportLink">
+                  <f:textbox  default="${descriptor.getDefaultLink()}"/>
+              </f:entry>
+          </f:advanced>
+      </f:section>
+
+
+
+  </s:sample>
+</j:jelly>
