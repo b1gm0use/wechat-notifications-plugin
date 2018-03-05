@@ -1,6 +1,7 @@
-package com.qy.wechat;
+package com.qy.wechat.plugin;
 
 
+import com.qy.wechat.Messages;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
@@ -15,8 +16,6 @@ import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Created by Marvin on 16/8/25.

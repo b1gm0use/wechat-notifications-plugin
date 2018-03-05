@@ -1,4 +1,4 @@
-package com.qy.wechat;
+package com.qy.wechat.module;
 
 /**
  * Created by Administrator on 2018/3/5.

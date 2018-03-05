@@ -1,4 +1,4 @@
-package com.qy.wechat;
+package com.qy.wechat.plugin;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;

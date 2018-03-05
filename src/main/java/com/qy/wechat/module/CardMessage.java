@@ -1,9 +1,9 @@
-package com.qy.wechat;
+package com.qy.wechat.module;
 
 /**
- * Created by Administrator on 2018/3/5.
+ * Created by Administrator on 2018/3/2.
  */
-public class TextMessage {
+public class CardMessage {
 
     private String touser;
 
@@ -17,7 +17,7 @@ public class TextMessage {
 
     private String safe;
 
-    private Text text;
+    private TextCard textcard;
 
     public String getTouser() {
         return touser;
@@ -67,21 +67,21 @@ public class TextMessage {
         this.safe = safe;
     }
 
-    public Text getText() {
-        return text;
+    public TextCard getTextcard() {
+        return textcard;
     }
 
-    public void setText(Text text) {
-        this.text = text;
+    public void setTextcard(TextCard textcard) {
+        this.textcard = textcard;
     }
 
-    public TextMessage(String touser, String toparty, String totag, String msgtype, String agentid, String safe, Text text) {
+    public CardMessage(String touser, String toparty, String totag, String msgtype, String agentid, String safe, TextCard textcard) {
         this.touser = touser;
         this.toparty = toparty;
         this.totag = totag;
         this.msgtype = msgtype;
         this.agentid = agentid;
         this.safe = safe;
-        this.text = text;
+        this.textcard = textcard;
     }
 }

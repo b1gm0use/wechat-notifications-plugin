@@ -1,15 +1,9 @@
-package com.qy.wechat;
-
-import com.alibaba.fastjson.JSON;
-import org.apache.commons.collections.map.HashedMap;
-
-import java.util.HashMap;
-import java.util.Map;
+package com.qy.wechat.module;
 
 /**
- * Created by Administrator on 2018/3/2.
+ * Created by Administrator on 2018/3/5.
  */
-public class CardMessage {
+public class TextMessage {
 
     private String touser;
 
@@ -23,7 +17,7 @@ public class CardMessage {
 
     private String safe;
 
-    private TextCard textcard;
+    private Text text;
 
     public String getTouser() {
         return touser;
@@ -73,21 +67,21 @@ public class CardMessage {
         this.safe = safe;
     }
 
-    public TextCard getTextcard() {
-        return textcard;
+    public Text getText() {
+        return text;
     }
 
-    public void setTextcard(TextCard textcard) {
-        this.textcard = textcard;
+    public void setText(Text text) {
+        this.text = text;
     }
 
-    public CardMessage(String touser, String toparty, String totag, String msgtype, String agentid, String safe, TextCard textcard) {
+    public TextMessage(String touser, String toparty, String totag, String msgtype, String agentid, String safe, Text text) {
         this.touser = touser;
         this.toparty = toparty;
         this.totag = totag;
         this.msgtype = msgtype;
         this.agentid = agentid;
         this.safe = safe;
-        this.textcard = textcard;
+        this.text = text;
     }
 }

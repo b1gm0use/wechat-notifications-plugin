@@ -1,7 +1,10 @@
-package com.qy.wechat;
+package com.qy.wechat.plugin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.qy.wechat.Messages;
+import com.qy.wechat.module.Text;
+import com.qy.wechat.module.TextMessage;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import org.apache.commons.httpclient.HttpClient;
@@ -12,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 

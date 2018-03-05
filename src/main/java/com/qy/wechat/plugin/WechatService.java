@@ -1,4 +1,4 @@
-package com.qy.wechat;
+package com.qy.wechat.plugin;
 
 /**
  * Created by Marvin on 16/10/8.
