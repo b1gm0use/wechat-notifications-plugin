@@ -12,8 +12,10 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 import java.io.IOException;
 
@@ -127,6 +129,13 @@ public class WechatNotifier extends Notifier {
 
     @Extension
     public static class WechatNotifierDescriptor extends BuildStepDescriptor<Publisher> {
+
+        public FormValidation doCheckCorpid(@QueryParameter String value){
+            if (value.length() == 0){
+                return FormValidation.error("请输入corpid");
+            }
+            return FormValidation.ok();
+        }
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
