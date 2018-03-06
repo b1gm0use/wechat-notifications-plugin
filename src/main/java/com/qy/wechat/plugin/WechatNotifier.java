@@ -2,17 +2,16 @@ package com.qy.wechat.plugin;
 
 
 import com.qy.wechat.Messages;
+import com.qy.wechat.module.WechatInstallation;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -24,11 +23,7 @@ import java.io.IOException;
  */
 public class WechatNotifier extends Notifier {
 
-    private String corpid;
-
-    private String corpsecret;
-
-    private String agentid;
+    private String wechatAppName;
 
     private String link;
 
@@ -66,18 +61,6 @@ public class WechatNotifier extends Notifier {
         return file;
     }
 
-    public String getCorpid() {
-        return corpid;
-    }
-
-    public String getCorpsecret() {
-        return corpsecret;
-    }
-
-    public String getAgentid() {
-        return agentid;
-    }
-
     public String getMemberIds() {
         return memberIds;
     }
@@ -90,12 +73,14 @@ public class WechatNotifier extends Notifier {
         return reportLink;
     }
 
+    public String getWechatAppName() {
+        return wechatAppName;
+    }
+
     @DataBoundConstructor
-    public WechatNotifier(String corpid, String corpsecret, String agentid, String link, String file, String memberIds,
+    public WechatNotifier(String wechatAppName, String link, String file, String memberIds,
                           String reportFile, String reportLink, boolean onStart, boolean onSuccess, boolean onFailed) {
-        this.corpid = corpid;
-        this.corpsecret = corpsecret;
-        this.agentid = agentid;
+        this.wechatAppName = wechatAppName;
         this.link = link;
         this.file = file;
         this.memberIds = memberIds;
@@ -107,8 +92,8 @@ public class WechatNotifier extends Notifier {
     }
 
     public WechatService newWechatService(AbstractBuild build, TaskListener listener) {
-        return new WechatServiceImpl(Jenkins.getInstance().getRootUrl() + build.getUrl(), corpid, corpsecret, agentid, memberIds, file,
-                link, reportFile, reportLink, onStart, onSuccess, onFailed, listener, build);
+        return new WechatServiceImpl(Jenkins.getInstance().getRootUrl() + build.getUrl(), wechatAppName,
+                memberIds, file, link, reportFile, reportLink, onStart, onSuccess, onFailed, listener, build);
 
     }
 
@@ -130,13 +115,6 @@ public class WechatNotifier extends Notifier {
     @Extension
     public static class WechatNotifierDescriptor extends BuildStepDescriptor<Publisher> {
 
-        public FormValidation doCheckCorpid(@QueryParameter String value){
-            if (value.length() == 0){
-                return FormValidation.error("请输入corpid");
-            }
-            return FormValidation.ok();
-        }
-
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
@@ -150,6 +128,29 @@ public class WechatNotifier extends Notifier {
         public String getDefaultLink() {
             Jenkins instance = Jenkins.getInstance();
             return instance.getRootUrl() != null ? instance.getRootUrl() : "";
+        }
+
+        public FormValidation doCheckWechatAppName(@QueryParameter String value){
+            if (value.length() == 0){
+                return FormValidation.error("Paramter wechatAppName must not be null");
+            }
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckMemberIds(@QueryParameter String value){
+            if (value.length() == 0){
+                return FormValidation.error("Paramter memberIds must not be null");
+            }
+            return FormValidation.ok();
+        }
+
+        public ListBoxModel doFillWechatAppNameItems(){
+            ListBoxModel items = new ListBoxModel();
+            items.add(" - None - ");
+            for(WechatInstallation installation: WechatGlobalConfig.get().getWechatInstallation()){
+                items.add(installation.getWechatAppName());
+            }
+            return items;
         }
     }
 }

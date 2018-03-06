@@ -5,15 +5,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.qy.wechat.Messages;
 import com.qy.wechat.module.Text;
 import com.qy.wechat.module.TextMessage;
+import com.qy.wechat.module.WechatInstallation;
+import com.qy.wechat.util.WechatConnector;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,11 +27,7 @@ public class WechatServiceImpl implements WechatService {
 
     private String buildurl;
 
-    private String corpid;
-
-    private String corpsecret;
-
-    private String agentid;
+    private WechatInstallation installation;
 
     private String memberIds;
 
@@ -61,13 +57,10 @@ public class WechatServiceImpl implements WechatService {
 
     private String currentTime = new SimpleDateFormat("E yyyy.MM.dd hh:mm:ss").format(new Date());
 
-    public WechatServiceImpl(String buildurl, String corpid, String corpsecret, String agentid, String memberIds, String file,
+    public WechatServiceImpl(String buildurl, String wechatAppName, String memberIds, String file,
                              String link, String reportFile, String reportLink, boolean onStart, boolean onSuccess, boolean onFailed, TaskListener listener,
                              AbstractBuild build) {
         this.buildurl = buildurl;
-        this.corpid = corpid;
-        this.corpsecret = corpsecret;
-        this.agentid = agentid;
         this.memberIds = memberIds;
         this.file = file;
         this.link = link;
@@ -79,8 +72,9 @@ public class WechatServiceImpl implements WechatService {
         this.listener = listener;
         this.build = build;
 
-        proName = build.getProject().getDisplayName();
-        displayName = build.getDisplayName();
+        this.proName = build.getProject().getDisplayName();
+        this.displayName = build.getDisplayName();
+        this.installation = WechatGlobalConfig.get().getWechatInstallationByName(wechatAppName);
     }
 
     /**
@@ -109,7 +103,7 @@ public class WechatServiceImpl implements WechatService {
     @Override
     public void start() {
         if (onStart) {
-            sendLinkMessage(
+            sendMessage(
                     String.format(Messages.WechatNotifier_startContent(), proName, displayName));
         }
     }
@@ -117,7 +111,7 @@ public class WechatServiceImpl implements WechatService {
     @Override
     public void success() {
         if (onSuccess) {
-            sendLinkMessage(
+            sendMessage(
                     String.format(Messages.WechatNotifier_successContent(),
                             currentTime, build.getProject().getDisplayName(), displayName, build.getBuildStatusSummary().message, build.getDurationString(),
                             getDownloadPath(), getReportPath()));
@@ -127,7 +121,7 @@ public class WechatServiceImpl implements WechatService {
     @Override
     public void failed() {
         if (onFailed) {
-            sendLinkMessage(
+            sendMessage(
                     String.format(Messages.WechatNotifier_failedContent(),
                             currentTime, build.getProject().getDisplayName(),displayName, build.getBuildStatusSummary().message, build.getDurationString()));
         }
@@ -137,50 +131,17 @@ public class WechatServiceImpl implements WechatService {
      * 群发消息
      * @param msg
      */
-    private void sendLinkMessage(String msg) {
-        if (this.token.equals("")){
-            updateToken();
-        }
-        HttpClient client = getHttpClient();
-        PostMethod post = new PostMethod(String.format(Messages.WechatNotifier_sendMsgApi(), token));
+    private void sendMessage(String msg) {
+        listener.getLogger().print(String.format("Send message: %s to [%s]", memberIds, msg));
+        TextMessage textMessage = new TextMessage(memberIds, "", "", "text",
+                installation.getAgentid(), "0", new Text(msg));
 
-        TextMessage textMessage = new TextMessage(memberIds, "", "", "text", agentid, "0", new Text(msg));
-        String body = JSON.toJSONString(textMessage);
-
-        try {
-            logger.info("Send msg:" + body);
-            listener.getLogger().println("Send msg:" + body);
-            post.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
-            client.executeMethod(post);
-            logger.info(post.getResponseBodyAsString());
-        } catch (IOException e) {
-            listener.getLogger().println("build request error: " + e);
-            logger.error("send msg error", e);
-        }
-        post.releaseConnection();
-    }
-
-    /**
-     * 更新access_token
-     */
-    private void updateToken(){
-        HttpClient client = getHttpClient();
-        GetMethod get = new GetMethod(String.format(Messages.WechatNotifier_updateTokenApi(), corpid, corpsecret));
-        try {
-            client.executeMethod(get);
-            logger.info(get.getResponseBodyAsString());
-            listener.getLogger().println(get.getResponseBodyAsString());
-            String responseBody = get.getResponseBodyAsString();
-            JSONObject object = JSONObject.parseObject(responseBody);
-            this.token = (String)object.get("access_token");
+        WechatConnector connector = new WechatConnector(installation.getCorpid(), installation.getCorpsecret());
+        try{
+            JSONObject responseObject = connector.sendMessage(textMessage);
+            listener.getLogger().print(responseObject);
         }catch (IOException e){
-            listener.getLogger().println("build request error: " + e);
-            logger.error("get token error", e);
+            listener.getLogger().print(e.getMessage());
         }
-    }
-
-    private HttpClient getHttpClient() {
-        HttpClient client = new HttpClient();
-        return client;
     }
 }
