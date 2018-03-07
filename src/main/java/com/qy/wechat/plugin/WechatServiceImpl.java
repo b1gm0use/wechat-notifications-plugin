@@ -104,7 +104,8 @@ public class WechatServiceImpl implements WechatService {
     public void start() {
         if (onStart) {
             sendMessage(
-                    String.format(Messages.WechatNotifier_startContent(), proName, displayName));
+                    String.format(Messages.WechatNotifier_startContent(), proName, displayName)
+            );
         }
     }
 
@@ -113,8 +114,11 @@ public class WechatServiceImpl implements WechatService {
         if (onSuccess) {
             sendMessage(
                     String.format(Messages.WechatNotifier_successContent(),
-                            currentTime, build.getProject().getDisplayName(), displayName, build.getBuildStatusSummary().message, build.getDurationString(),
-                            getDownloadPath(), getReportPath()));
+                            currentTime, build.getProject().getDisplayName(), displayName,
+                            build.getBuildStatusSummary().message, build.getDurationString(),
+                            getDownloadPath(), getReportPath()
+                    )
+            );
         }
     }
 
@@ -123,7 +127,10 @@ public class WechatServiceImpl implements WechatService {
         if (onFailed) {
             sendMessage(
                     String.format(Messages.WechatNotifier_failedContent(),
-                            currentTime, build.getProject().getDisplayName(),displayName, build.getBuildStatusSummary().message, build.getDurationString()));
+                            currentTime, build.getProject().getDisplayName(),displayName,
+                            build.getBuildStatusSummary().message, build.getDurationString(), buildurl
+                    )
+            );
         }
     }
 

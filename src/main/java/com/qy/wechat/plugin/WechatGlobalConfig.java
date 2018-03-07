@@ -26,10 +26,6 @@ public class WechatGlobalConfig extends GlobalConfiguration {
         this.wechatInstallations = wechatInstallations;
     }
 
-    public WechatGlobalConfig() {
-        load();
-    }
-
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         req.bindJSON(this, json);
